@@ -14,15 +14,28 @@ import java.util.logging.Logger;
 public class App {
     private static Logger logger = Logger.getLogger(App.class.getName());
 
-    public static void main(String[] args) throws IOException, GeneralSecurityException {
+    static {
         // create folder images if not exist
         File folder = new File("images");
         if (!folder.exists()) {
             folder.mkdir();
         }
-        String absolutePath = new File("chromedriver.exe").getAbsolutePath();
+        String absolutePath = null;
+        // Check current operating system
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) {
+            absolutePath = new File("chromedriver/windows.exe").getAbsolutePath();
+        } else if (os.contains("nix") || os.contains("nux") || os.contains("aix")) {
+            absolutePath = new File("chromedriver/linux").getAbsolutePath();
+        } else {
+            logger.log(Level.SEVERE, "Unsupported OS");
+            System.exit(1);
+        }
         System.setProperty("webdriver.chrome.driver", absolutePath);
-        List<List<Object>> values = GoogleSheets.getList(2000, 3000);
+    }
+
+    public static void main(String[] args) throws IOException, GeneralSecurityException {
+        List<List<Object>> values = GoogleSheets.getList(4500, 6000);
         for (List<Object> list : values) {
             String url = list.get(1).toString().trim();
             logger.info("checking url: " + url);

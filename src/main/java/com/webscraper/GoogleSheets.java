@@ -36,6 +36,7 @@ import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GoogleSheets {
     private static final String APPLICATION_NAME = "Google Sheets API Java Quickstart";
@@ -92,7 +93,7 @@ public class GoogleSheets {
         ValueRange response = service.spreadsheets().values()
                 .get(spreadsheetId, range)
                 .execute();
-        return response.getValues().stream().filter(x -> ((String) x.get(0)).toUpperCase().contains("PANO")).toList();
+        return response.getValues().stream().filter(x -> ((String) x.get(0)).toUpperCase().contains("PANO")).collect(Collectors.toList());
     }
 }
 // [END sheets_quickstart]
