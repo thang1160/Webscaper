@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
+import javax.net.ssl.HttpsURLConnection;
 
 import java.awt.image.BufferedImage;
 
@@ -77,6 +78,28 @@ public class Selenium {
             return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException ex) {
             throw new RuntimeException(ex.getCause());
+        }
+    }
+
+    public static void main(String[] args) {
+        System.setProperty("https.protocols", "TLSv1.2,TLSv1.1,SSLv3");
+        String imageUrl = "https://xq.ane.vn/s/kxjzyADpaAFdCeL/download?path=%2FPHIM-G%E1%BB%90C&files=BUI+TUAN+NGOC.bmp";
+        logger.info("downloading image: " + imageUrl);
+        try {
+            URL website = new URL(imageUrl);
+            HttpsURLConnection con = (HttpsURLConnection)website.openConnection();
+            try (InputStream in = con.getInputStream()) {
+                BufferedImage image = ImageIO.read(in);
+                BufferedImage result = new BufferedImage(
+                        image.getWidth(),
+                        image.getHeight(),
+                        BufferedImage.TYPE_INT_RGB);
+                result.createGraphics().drawImage(image, 0, 0, java.awt.Color.WHITE, null);
+                ImageIO.write(result, "jpg",
+                        new File("images/kxjzyADpaAFdCeL.jpg"));
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "error", e);
         }
     }
 }

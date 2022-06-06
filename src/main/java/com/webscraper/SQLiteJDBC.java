@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,15 +49,13 @@ public class SQLiteJDBC {
         }
     }
 
-    public static void updateDownloaded(String sid, int downloaded, String error) {
+    public static void updateDownloaded(String sid, int downloaded, String error) throws SQLException {
         String query = "UPDATE image SET downloaded=?, error=? WHERE sid=?;";
         try (PreparedStatement ps = c.prepareStatement(query)) {
             ps.setInt(1, downloaded);
             ps.setString(2, error);
             ps.setString(3, sid);
             ps.executeUpdate();
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "error", e);
         }
     }
 }

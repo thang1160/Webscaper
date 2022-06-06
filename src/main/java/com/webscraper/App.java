@@ -3,6 +3,7 @@ package com.webscraper;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,8 +35,8 @@ public class App {
         System.setProperty("webdriver.chrome.driver", absolutePath);
     }
 
-    public static void main(String[] args) throws IOException, GeneralSecurityException {
-        List<List<Object>> values = GoogleSheets.getList(4500, 6000);
+    public static void main(String[] args) throws IOException, GeneralSecurityException, SQLException {
+        List<List<Object>> values = GoogleSheets.getList(7000, 7383);
         for (List<Object> list : values) {
             String url = list.get(1).toString().trim();
             logger.info("checking url: " + url);
