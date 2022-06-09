@@ -16,8 +16,12 @@ public class App {
     private static Logger logger = Logger.getLogger(App.class.getName());
 
     static {
-        // create folder images if not exist
+        // create folder images & fixed_images if not exist
         File folder = new File("images");
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+        folder = new File("fixed_images");
         if (!folder.exists()) {
             folder.mkdir();
         }
@@ -33,26 +37,33 @@ public class App {
             System.exit(1);
         }
         System.setProperty("webdriver.chrome.driver", absolutePath);
+        System.setProperty("https.protocols", "TLSv1.2,TLSv1.1,SSLv3");
     }
 
     public static void main(String[] args) throws IOException, GeneralSecurityException, SQLException {
-        List<List<Object>> values = GoogleSheets.getList(7000, 7383);
+        List<List<Object>> values = GoogleSheets.getList(0, 4000);
         for (List<Object> list : values) {
             String url = list.get(1).toString().trim();
-            logger.info("checking url: " + url);
-            int downloaded = SQLiteJDBC.getDownloaded(url);
-            if (downloaded > 0) {
-                logger.info("already downloaded: " + url);
-                continue;
-            }
             String sid = url.substring(url.lastIndexOf("/") + 1);
+            logger.info("checking url: " + url);
             try {
-                if (downloaded == -1)
-                    SQLiteJDBC.insertImage(sid, url);
+                int downloaded = SQLiteJDBC.getDownloaded(url);
+                if (downloaded > 0) {
+                    logger.info("already downloaded: " + url);
+                    continue;
+                } else if (downloaded == 0) {
+                    File folder = new File("fixed_images/" + sid);
+                    if (!folder.exists()) {
+                        folder.mkdir();
+                    }
+                    Selenium.downloadAllImage(url, sid, 0);
+                    continue;
+                }
+                SQLiteJDBC.insertImage(sid, url);
                 if (list.get(0).toString().contains("+"))
-                    downloaded = Selenium.downloadImage(url, sid, true);
+                    downloaded = Selenium.downloadImage(url, sid, true, 0);
                 else
-                    downloaded = Selenium.downloadImage(url, sid, false);
+                    downloaded = Selenium.downloadImage(url, sid, false, 0);
                 SQLiteJDBC.updateDownloaded(sid, downloaded, null);
                 Thread.sleep(1000);
             } catch (Exception e) {

@@ -24,7 +24,10 @@ import org.openqa.selenium.chrome.ChromeDriver;
 public class Selenium {
     private static Logger logger = Logger.getLogger(Selenium.class.getName());
 
-    public static int downloadImage(String url, String sid, boolean panoOnly) throws InterruptedException {
+    public static int downloadImage(String url, String sid, boolean panoOnly, int looped) throws InterruptedException {
+        if (looped > 10) {
+            return 0;
+        }
         int downloaded = 0;
         WebDriver driver = new ChromeDriver();
         driver.get(url);
@@ -66,11 +69,56 @@ public class Selenium {
             } else if (dataMime.toLowerCase().contains("http")) {
                 WebElement anchor = row.findElement(By.cssSelector("a.name"));
                 String href = anchor.getAttribute("href");
-                downloaded += downloadImage(href, sid, panoOnly);
+                downloaded += downloadImage(href, sid, panoOnly, looped + 1);
             }
         }
         driver.quit();
         return downloaded;
+    }
+
+    public static void downloadAllImage(String url, String sid, int looped) throws InterruptedException {
+        if (looped > 10)
+            return;
+        WebDriver driver = new ChromeDriver();
+        driver.get(url);
+        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000));
+        // Thread.sleep(2000);
+        String actualUrl = driver.getCurrentUrl();
+        // prevent looping
+        if (!actualUrl.equals(url)) return;
+        WebElement fileList = driver.findElement(By.id("fileList"));
+        List<WebElement> rows = fileList.findElements(By.tagName("tr"));
+        for (WebElement row : rows) {
+            String dataMime = row.getAttribute("data-mime");
+            if (dataMime.toLowerCase().contains("image")) {
+                String fileName = row.getAttribute("data-file");
+                String imageUrl = "https://xq.ane.vn/s/" + sid + "/download?path="
+                        + encodeValue(row.getAttribute("data-path"))
+                        + "&files="
+                        + encodeValue(fileName);
+                logger.info("downloading image: " + imageUrl);
+                try {
+                    URL website = new URL(imageUrl);
+                    try (InputStream in = website.openStream()) {
+                        BufferedImage image = ImageIO.read(in);
+                        BufferedImage result = new BufferedImage(
+                                image.getWidth(),
+                                image.getHeight(),
+                                BufferedImage.TYPE_INT_RGB);
+                        result.createGraphics().drawImage(image, 0, 0, java.awt.Color.WHITE, null);
+                        ImageIO.write(result, "jpg",
+                                new File("fixed_images/" + sid + "/" + fileName + ".jpg"));
+                    }
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "error", e);
+                }
+            } else if (dataMime.toLowerCase().contains("http")) {
+                WebElement anchor = row.findElement(By.cssSelector("a.name"));
+                String href = anchor.getAttribute("href");
+                downloadAllImage(href, sid, looped + 1);
+            }
+        }
+        driver.quit();
     }
 
     private static String encodeValue(String value) {
