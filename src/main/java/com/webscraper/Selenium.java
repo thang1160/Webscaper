@@ -25,7 +25,7 @@ public class Selenium {
     private static Logger logger = Logger.getLogger(Selenium.class.getName());
 
     public static int downloadImage(String url, String sid, boolean panoOnly, int looped) throws InterruptedException {
-        if (looped > 10) {
+        if (looped > 5) {
             return 0;
         }
         int downloaded = 0;
@@ -77,7 +77,7 @@ public class Selenium {
     }
 
     public static void downloadAllImage(String url, String sid, int looped) throws InterruptedException {
-        if (looped > 10)
+        if (looped > 5)
             return;
         WebDriver driver = new ChromeDriver();
         driver.get(url);
@@ -107,7 +107,7 @@ public class Selenium {
                                 BufferedImage.TYPE_INT_RGB);
                         result.createGraphics().drawImage(image, 0, 0, java.awt.Color.WHITE, null);
                         ImageIO.write(result, "jpg",
-                                new File("fixed_images/" + sid + "/" + fileName + ".jpg"));
+                                new File("fixed_images/" + sid + "/" + fileName));
                     }
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, "error", e);
@@ -115,7 +115,16 @@ public class Selenium {
             } else if (dataMime.toLowerCase().contains("http")) {
                 WebElement anchor = row.findElement(By.cssSelector("a.name"));
                 String href = anchor.getAttribute("href");
-                downloadAllImage(href, sid, looped + 1);
+                Thread thread = new Thread(() -> {
+                    try {
+                        Thread.sleep(2000);
+                        downloadAllImage(href, sid, looped + 1);
+                    } catch (InterruptedException e) {
+                        logger.log(Level.SEVERE, "error", e);
+                        Thread.currentThread().interrupt();
+                    }
+                });
+                thread.start();
             }
         }
         driver.quit();

@@ -41,7 +41,7 @@ public class App {
     }
 
     public static void main(String[] args) throws IOException, GeneralSecurityException, SQLException {
-        List<List<Object>> values = GoogleSheets.getList(0, 4000);
+        List<List<Object>> values = GoogleSheets.getList(0, 7400);
         for (List<Object> list : values) {
             String url = list.get(1).toString().trim();
             String sid = url.substring(url.lastIndexOf("/") + 1);

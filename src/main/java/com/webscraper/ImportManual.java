@@ -40,6 +40,10 @@ public class ImportManual {
                         SQLiteJDBC.updateDownloaded(fileName, 1, null);
                         FileUtils.deleteDirectory(file);
                     }
+                    else if (file.listFiles().length == 0) {
+                        SQLiteJDBC.updateDownloaded(fileName, 1, "khong co file");
+                        FileUtils.deleteDirectory(file);
+                    }
                 }
                 if (file.isFile()) {
                     String sid = fileName.substring(0, fileName.indexOf("."));
